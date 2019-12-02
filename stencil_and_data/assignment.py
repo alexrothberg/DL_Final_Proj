@@ -43,6 +43,7 @@ def train(model, train_french, train_english, eng_padding_index):
 			predictions = model.call(frenchTrainInputs, englishTrainInputs)
 
 			loss = model.loss_function(predictions, englishTrainLabels, maskNumpy)
+			print(loss)
 
 		gradients = tape.gradient(loss, model.trainable_variables)
 		model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))

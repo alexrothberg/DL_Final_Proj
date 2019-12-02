@@ -14,32 +14,51 @@ class RNN_Seq2Seq(tf.keras.Model):
 		######^^^ DO NOT CHANGE ^^^##################
 
 
-		self.batch_size = 100 
-		self.embedding_size = 30 
-		self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
-	
-		#self.englishEmbedding = tf.Variable(tf.random.truncated_normal([self.english_vocab_size, self.embedding_size], stddev=.01, dtype=tf.float32))
-		#self.frenchEmbedding = tf.Variable(tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=.01, dtype=tf.float32))
+		# TODO:
+		# 1) Define any hyperparameters
 
-		self.encoder = tf.keras.layers.GRU(units=100, return_state=True)
-		self.decoder = tf.keras.layers.GRU(units=100, return_state=True, return_sequences=True)
-		self.denseLayer = tf.keras.layers.Dense(units=self.french_vocab_size, activation="softmax")
+		# Define batch size and optimizer/learning rate
+		self.batch_size = 5 # You can change this
+		self.embedding_size = 30 # You should change this
+	
+		# 2) Define embeddings, encoder, decoder, and feed forward layers
+		self.optimizer = tf.keras.optimizers.Adam(.005)
+		self.perplexity = 0
+		self.test_perp = 0
+		self.lstm_enc_out_dim = 35
+		self.lstm_dec_out_dim = 35
+
+		self.french_embedding = tf.keras.layers.Embedding(french_vocab_size,self.embedding_size,batch_input_shape=[self.batch_size, self.french_window_size])
+		self.eng_embedding = tf.keras.layers.Embedding(english_vocab_size,self.embedding_size,batch_input_shape=[self.batch_size, self.english_window_size])
+		# self.french_dense_1 = tf.keras.layers.Dense(activation = 'softmax',units = french_vocab_size,use_bias=True,bias_initializer='zeros')
+		self.eng_dense_1 = tf.keras.layers.Dense(activation = 'softmax',units = english_vocab_size,use_bias=True,bias_initializer='zeros')
+		self.encoder = tf.keras.layers.LSTM(self.lstm_enc_out_dim,return_sequences=True,return_state=True)
+		self.decoder = tf.keras.layers.LSTM(self.lstm_dec_out_dim,return_sequences=True,return_state=True)
+
 
 	@tf.function
 	def call(self, encoder_input, decoder_input):
-	
+		"""
+		:param encoder_input: batched ids corresponding to french sentences
+		:param decoder_input: batched ids corresponding to english sentences
+		:return prbs: The 3d probabilities as a tensor, [batch_size x window_size x english_vocab_size]
+		"""
+		french_emb = self.french_embedding(encoder_input)
+		encoded, state1, state2 = self.encoder(french_emb)
+		# OK SO I DON't shift the eng over??
+		
+		# encoded = self.french_dense_1(encoded)
+		eng_emb = self.eng_embedding(decoder_input)
+		decoded, state_dec_1, state_dec_2 = self.decoder(eng_emb, initial_state = [state1,state2])
+		out = self.eng_dense_1(decoded)
+		print(out.shape)
 
-		#frenchEmbeddings = tf.nn.embedding_lookup(self.frenchEmbedding, encoder_input)
-		#englishEmbeddings = tf.nn.embedding_lookup(self.englishEmbedding, decoder_input)
+		# TODO:
+		#1) Pass your french sentence embeddings to your encoder 
+		#2) Pass your english sentence embeddings, and final state of your encoder, to your decoder
+		#3) Apply dense layer(s) to the decoder out to generate probabilities
 
-		encoderSequence = self.encoder(encoder_input)
-
-		decoderSequence = self.decoder(decoder_input, initial_state=encoderSequence[1])
-
-		probabilities = self.denseLayer(decoderSequence[0])
-
-		return probabilities
-
+		return out
 
 	def accuracy_function(self, prbs, labels, mask):
 		"""
@@ -67,5 +86,8 @@ class RNN_Seq2Seq(tf.keras.Model):
 		:param mask:  tensor that acts as a padding mask [batch_size x window_size]
 		:return: the loss of the model as a tensor
 		"""
+		# labels = np.multiply(labels,mask)
+		# cross_ent = tf.keras.losses.sparse_categorical_crossentropy(labels,prbs,from_logits= False)
+		# return (tf.reduce_sum(cross_ent))/(np.sum(mask))
+		return tf.reduce_sum(mask * tf.keras.losses.sparse_categorical_crossentropy(labels,prbs))
 
-		return tf.reduce_sum(mask * tf.keras.losses.sparse_categorical_crossentropy(labels, prbs))

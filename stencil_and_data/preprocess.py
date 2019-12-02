@@ -5,10 +5,10 @@ import pretty_midi
 import os
 
 ##########DO NOT CHANGE#####################
-PAD_TOKEN = -50
-STOP_TOKEN = -50
-START_TOKEN = -50
-UNK_TOKEN = -50
+PAD_TOKEN = 250
+STOP_TOKEN = 250
+START_TOKEN = 250
+UNK_TOKEN = 250
 FRENCH_WINDOW_SIZE = 2000
 ENGLISH_WINDOW_SIZE = 2000
 ##########DO NOT CHANGE#####################
@@ -72,7 +72,7 @@ def preprocessing(folder):
 	pitches_train, pitches_test = split_train_test(padded_pitches_data)
 	vels_train, vels_test = split_train_test(padded_vels_data)
 
-	return (vels_train, vels_test, pitches_train, pitches_test, durations, starts, tempo, -50)
+	return (vels_train, vels_test, pitches_train, pitches_test, durations, starts, tempo, 250)
 
 def recreate_song_from_data(pitches, vels, starts, durs, tempo, name):
 
