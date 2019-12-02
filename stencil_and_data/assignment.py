@@ -101,16 +101,15 @@ def main():
 	#train_english,test_english, train_french,test_french, english_vocab,french_vocab,eng_padding_index = get_data('data/fls.txt','data/els.txt','data/flt.txt','data/elt.txt')
 	vels_train, vels_test, pitches_train, pitches_test, durations, starts, tempo, index = preprocessing('../jazz')
 	print("Preprocessing complete.")
-
 	model_args = (FRENCH_WINDOW_SIZE,len(pitches_train),ENGLISH_WINDOW_SIZE, len(vels_train))
 	if sys.argv[1] == "RNN":
 		model = RNN_Seq2Seq(*model_args)
 	#elif sys.argv[1] == "TRANSFORMER":
 		#model = Transformer_Seq2Seq(*model_args) 
 	
-	train(model, pitches_train, vels_train, -50)
+	train(model, np.array(pitches_train), np.array(vels_train), -50)
 
-	perplexity, accuracy = test(model, pitches_test, vels_test, -50)
+	perplexity, accuracy = test(model, np.array(pitches_test), np.array(vels_test), -50)
 
 	print(perplexity)
 	print(accuracy)
