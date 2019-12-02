@@ -1,0 +1,5 @@
+README
+
+The perplexity of my RNN model is about 7.5, and the accuracy is about 71%. There do not appear to be any known bugs in my model.
+
+The perplexity of my Transformer model is about 6.9, and the accuracy is about 67%. There do not appear to be any known bugs in my model.
