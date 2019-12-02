@@ -94,32 +94,33 @@ def recreate_song_from_data(pitches, vels, starts, durs, tempo, name):
 
 
 def pad_corpus(french, english):
-	"""
-	DO NOT CHANGE:
+    """
+    DO NOT CHANGE:
 
-	arguments are lists of FRENCH, ENGLISH sentences. Returns [FRENCH-sents, ENGLISH-sents]. The
-	text is given an initial "*STOP*".  All sentences are padded with "*STOP*" at
-	the end.
+    arguments are lists of FRENCH, ENGLISH sentences. Returns [FRENCH-sents, ENGLISH-sents]. The
+    text is given an initial "*STOP*".  All sentences are padded with "*STOP*" at
+    the end.
 
-	:param french: list of French sentences
-	:param english: list of English sentences
-	:return: A tuple of: (list of padded sentences for French, list of padded sentences for English)
-	"""
-	FRENCH_padded_sentences = []
-	FRENCH_sentence_lengths = []
-	for line in french:
-		padded_FRENCH = line[:FRENCH_WINDOW_SIZE]
-		padded_FRENCH += [STOP_TOKEN] + [PAD_TOKEN] * (FRENCH_WINDOW_SIZE - len(padded_FRENCH)-1)
-		FRENCH_padded_sentences.append(padded_FRENCH)
+    :param french: list of French sentences
+    :param english: list of English sentences
+    :return: A tuple of: (list of padded sentences for French, list of padded sentences for English, French sentence lengths, English sentence lengths)
+    """
+    FRENCH_padded_sentences = []
+    FRENCH_sentence_lengths = []
+    for line in french:
+        padded_FRENCH = line[:FRENCH_WINDOW_SIZE-1]
+        padded_FRENCH += [STOP_TOKEN] + [PAD_TOKEN] * (FRENCH_WINDOW_SIZE - len(padded_FRENCH)-1)
+        FRENCH_padded_sentences.append(padded_FRENCH)
 
-	ENGLISH_padded_sentences = []
-	ENGLISH_sentence_lengths = []
-	for line in english:
-		padded_ENGLISH = line[:ENGLISH_WINDOW_SIZE]
-		padded_ENGLISH = [START_TOKEN] + padded_ENGLISH + [STOP_TOKEN] + [PAD_TOKEN] * (ENGLISH_WINDOW_SIZE - len(padded_ENGLISH)-1)
-		ENGLISH_padded_sentences.append(padded_ENGLISH)
+    ENGLISH_padded_sentences = []
+    ENGLISH_sentence_lengths = []
+    for line in english:
+        padded_ENGLISH = line[:ENGLISH_WINDOW_SIZE-1]
+        padded_ENGLISH = [START_TOKEN] + padded_ENGLISH + [STOP_TOKEN] + [PAD_TOKEN] * (ENGLISH_WINDOW_SIZE - len(padded_ENGLISH)-1)
+        ENGLISH_padded_sentences.append(padded_ENGLISH)
 
-	return FRENCH_padded_sentences, ENGLISH_padded_sentences
+    return FRENCH_padded_sentences, ENGLISH_padded_sentences
+
 
 def build_vocab(sentences):
 	"""
