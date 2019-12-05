@@ -7,6 +7,45 @@ from transformer_model import Transformer_Seq2Seq
 from rnn_model import RNN_Seq2Seq
 import sys
 
+'''
+def generate(model, train_french, eng_padding_index):
+	#current_english = tf.convert_to_tensor( [PAD_TOKEN]*model.batch_size
+
+	for i in range(0,2000):
+
+		englishTrainInputs = train_english[i * model.batch_size : (i * model.batch_size + model.batch_size) , :-1]
+		frenchTrainInputs = train_french[i * model.batch_size : (i * model.batch_size + model.batch_size),:]
+		predictions = model.call(frenchTrainInputs, englishTrainInputs)
+'''
+def generate(model, test_french, test_english, eng_padding_index):
+	"""
+	Runs through one epoch - all testing examples.
+
+	:param model: the initilized model to use for forward and backward pass
+	:param test_french: french test data (all data for testing) of shape (num_sentences, 14)
+	:param test_english: english test data (all data for testing) of shape (num_sentences, 15)
+	:param eng_padding_index: the padding index, the id of *PAD* token. This integer is used to mask padding labels.
+	:returns: perplexity of the test set, per symbol accuracy on test set
+	"""
+
+	# Note: Follow the same procedure as in train() to construct batches of data!
+
+
+	for i in range(len(test_french) // model.batch_size):
+		englishTestInputs = test_english[i * model.batch_size : (i * model.batch_size + model.batch_size),:-1]
+		englishTestLabels = test_english[i * model.batch_size : (i * model.batch_size + model.batch_size),1:]
+		frenchTestInputs = test_french[i * model.batch_size : (i * model.batch_size + model.batch_size),:]
+		probabilities = model.call(frenchTestInputs, englishTestInputs)
+		decoded_symbols = tf.argmax(input=probabilities, axis=2)
+
+	print("original: ")
+	print(test_english)
+
+	print("guesses:")
+	print(decoded_symbols)
+	return decoded_symbols
+
+
 
 def train(model, train_french, train_english, eng_padding_index):
 	"""
@@ -19,21 +58,22 @@ def train(model, train_french, train_english, eng_padding_index):
 	:return: None
 	"""
 
-	# NOTE: For each training step, you should pass in the french sentences to be used by the encoder, 
+	# NOTE: For each training step, you should pass in the french sentences to be used by the encoder,
 	# and english sentences to be used by the decoder
 	# - The english sentences passed to the decoder have the last token in the window removed:
-	#	 [STOP CS147 is the best class. STOP *PAD*] --> [STOP CS147 is the best class. STOP] 
-	# 
+	#	 [STOP CS147 is the best class. STOP *PAD*] --> [STOP CS147 is the best class. STOP]
+	#
 	# - When computing loss, the decoder labels should have the first word removed:
-	#	 [STOP CS147 is the best class. STOP] --> [CS147 is the best class. STOP] 
+	#	 [STOP CS147 is the best class. STOP] --> [CS147 is the best class. STOP]
 
 	for i in range(len(train_french) // (model.batch_size)):
-		print(i * model.batch_size)
-		print(train_english)
-		
+		#print(i * model.batch_size)
+		#print(train_english)
+
 		englishTrainInputs = train_english[i * model.batch_size : (i * model.batch_size + model.batch_size) , :-1]
 		englishTrainLabels = train_english[i * model.batch_size : (i * model.batch_size + model.batch_size) , 1:]
 
+		#print("english inputs shape is "+str(np.shape(englishTrainInputs)))
 		frenchTrainInputs = train_french[i * model.batch_size : (i * model.batch_size + model.batch_size),:]
 
 		maskNumpy = englishTrainLabels != eng_padding_index
@@ -92,7 +132,7 @@ def test(model, test_french, test_english, eng_padding_index):
 
 	return perplexity, totalAccuracy
 
-def main():	
+def main():
 	if len(sys.argv) != 2 or sys.argv[1] not in {"RNN","TRANSFORMER"}:
 			print("USAGE: python assignment.py <Model Type>")
 			print("<Model Type>: [RNN/TRANSFORMER]")
@@ -106,16 +146,15 @@ def main():
 	if sys.argv[1] == "RNN":
 		model = RNN_Seq2Seq(*model_args)
 	#elif sys.argv[1] == "TRANSFORMER":
-		#model = Transformer_Seq2Seq(*model_args) 
-	
-	train(model, np.array(pitches_train), np.array(vels_train), -50)
+		#model = Transformer_Seq2Seq(*model_args)
 
+	new_song = generate(model, np.array(pitches_test), np.array(vels_test), -50)
+
+	train(model, np.array(pitches_train), np.array(vels_train), -50)
+	new_song = generate(model, np.array(pitches_test), np.array(vels_test), -50)
 	perplexity, accuracy = test(model, np.array(pitches_test), np.array(vels_test), -50)
 
-	print(perplexity)
-	print(accuracy)
+
 
 if __name__ == '__main__':
    main()
-
-

@@ -143,7 +143,7 @@ def convert_to_id(vocab, sentences):
 	"""
 	DO NOT CHANGE
 
-  Convert sentences to indexed 
+  Convert sentences to indexed
 
 	:param vocab:  dictionary, word --> unique index
 	:param sentences:  list of lists of words, each representing padded sentence
@@ -176,7 +176,7 @@ def get_data(french_training_file, english_training_file, french_test_file, engl
 	:param english_training_file: Path to the english training file.
 	:param french_test_file: Path to the french test file.
 	:param english_test_file: Path to the english test file.
-	
+
 	:return: Tuple of train containing:
 	(2-d list or array with english training sentences in vectorized/id form [num_sentences x 15] ),
 	(2-d list or array with english test sentences in vectorized/id form [num_sentences x 15]),
@@ -186,7 +186,7 @@ def get_data(french_training_file, english_training_file, french_test_file, engl
 	english vocab (Dict containg word->index mapping),
 	english padding ID (the ID used for *PAD* in the English vocab. This will be used for masking loss)
 	"""
-	
+
 	frenchTrainingSentences = read_data(french_training_file)
 	englishTrainingSentences = read_data(english_training_file)
 
@@ -208,4 +208,3 @@ def get_data(french_training_file, english_training_file, french_test_file, engl
 	frenchTestIDs = convert_to_id(frenchVocab, paddedFrenchTesting)
 
 	return englishTrainIDs, englishTestIDS, frenchTrainIDs, frenchTestIDs, englishVocab, frenchVocab, englishTrainIndex
-	

@@ -20,7 +20,7 @@ class RNN_Seq2Seq(tf.keras.Model):
 		# Define batch size and optimizer/learning rate
 		self.batch_size = 2 # You can change this
 		self.embedding_size = 30 # You should change this
-	
+
 		# 2) Define embeddings, encoder, decoder, and feed forward layers
 		self.optimizer = tf.keras.optimizers.Adam(.01)
 		self.perplexity = 0
@@ -43,18 +43,22 @@ class RNN_Seq2Seq(tf.keras.Model):
 		:param decoder_input: batched ids corresponding to english sentences
 		:return prbs: The 3d probabilities as a tensor, [batch_size x window_size x english_vocab_size]
 		"""
+
+		#from french to english
+
+		#so this encodes the notes into state 1 and state 2
 		french_emb = self.french_embedding(encoder_input)
 		encoded, state1, state2 = self.encoder(french_emb)
-		# OK SO I DON't shift the eng over??
-		
-		# encoded = self.french_dense_1(encoded)
+
+		#this holds the previous velocities
 		eng_emb = self.eng_embedding(decoder_input)
+		#you give it the previous velocities and english
 		decoded, state_dec_1, state_dec_2 = self.decoder(eng_emb, initial_state = [state1,state2])
 		out = self.eng_dense_1(decoded)
 		print(out.shape)
 
 		# TODO:
-		#1) Pass your french sentence embeddings to your encoder 
+		#1) Pass your french sentence embeddings to your encoder
 		#2) Pass your english sentence embeddings, and final state of your encoder, to your decoder
 		#3) Apply dense layer(s) to the decoder out to generate probabilities
 
@@ -65,7 +69,7 @@ class RNN_Seq2Seq(tf.keras.Model):
 		DO NOT CHANGE
 
 		Computes the batch accuracy
-		
+
 		:param prbs:  float tensor, word prediction probabilities [batch_size x window_size x english_vocab_size]
 		:param labels:  integer tensor, word prediction labels [batch_size x window_size]
 		:param mask:  tensor that acts as a padding mask [batch_size x window_size]
@@ -80,7 +84,7 @@ class RNN_Seq2Seq(tf.keras.Model):
 	def loss_function(self, prbs, labels, mask):
 		"""
 		Calculates the model cross-entropy loss after one forward pass
-		
+
 		:param prbs:  float tensor, word prediction probabilities [batch_size x window_size x english_vocab_size]
 		:param labels:  integer tensor, word prediction labels [batch_size x window_size]
 		:param mask:  tensor that acts as a padding mask [batch_size x window_size]
@@ -90,4 +94,3 @@ class RNN_Seq2Seq(tf.keras.Model):
 		# cross_ent = tf.keras.losses.sparse_categorical_crossentropy(labels,prbs,from_logits= False)
 		# return (tf.reduce_sum(cross_ent))/(np.sum(mask))
 		return tf.reduce_sum(mask * tf.keras.losses.sparse_categorical_crossentropy(labels,prbs))
-
