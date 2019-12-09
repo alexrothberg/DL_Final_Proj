@@ -78,19 +78,23 @@ def recreate_song_from_data(pitches, vels, starts, durs, tempo, name):
 
 	recreated_song = pretty_midi.PrettyMIDI(initial_tempo = tempo)
 
+	pitches = list(map(lambda x: max(0,min(x,127)),pitches))
+	vels = list(map(lambda x: max(0,min(x,127)),vels))
+
+
 	#Create an Instrument instance for a piano instrument:
 	song_program = pretty_midi.instrument_name_to_program('Acoustic Grand Piano')
-	piano = pretty_midi.Instrument(prorgam=song_program)
+	piano = pretty_midi.Instrument(program=song_program)
 
 	#Iterate over note names, which will be converted to note number later:
-	for i in range(0, len(vels)):
-		note = pretty_midi.Note(velocity=vels[i], pitch=pitches[i], start=start[i], end=starts[i] + durs[i])
+	for i in range(0, min(2000,len(vels),len(starts))):
+		note = pretty_midi.Note(velocity=max(0,min(int(vels[i]),127)), pitch=int(pitches[i]), start=(starts[i]), end=(starts[i]) + durs[i])
 		piano.notes.append(note)
 
 	recreated_song.instruments.append(piano)
 
 	#Write out the MIDI data:
-	recreated_song.write(name + '.mid')
+	recreated_song.write(name)
 
 
 def pad_corpus(french, english):
@@ -209,3 +213,62 @@ def get_data(french_training_file, english_training_file, french_test_file, engl
 
 	return englishTrainIDs, englishTestIDS, frenchTrainIDs, frenchTestIDs, englishVocab, frenchVocab, englishTrainIndex
 	
+
+
+def extract_pitches_vels_durations_names(filename):
+
+	midi_data = pretty_midi.PrettyMIDI(filename)
+
+	#Extract Piano
+	piano_midi = midi_data.instruments[0]
+
+	#Extract pitches in a list
+	pitches = list(map(lambda x: x.pitch, piano_midi.notes))
+
+	#Extract velocities in a list
+	vels = list(map(lambda x: x.velocity, piano_midi.notes))
+	durations = list(map(lambda x: x.end - x.start, piano_midi.notes))
+	starts = list(map(lambda x: x.start, piano_midi.notes))
+	ends = list(map(lambda x: x.end, piano_midi.notes))
+	tempo = midi_data.estimate_tempo()
+
+	return (pitches, vels, durations, starts, ends, tempo,filename)
+
+def extract_pitch_vel_duration_lists_for_folder_post(folder):
+	pitches_list = []
+	vels_list = []
+	durations_list = []
+	starts = []
+	ends = []
+	tempos = []
+	names = []
+
+	for song in os.listdir(folder):
+		print(song)
+
+		if 'mid' in song:
+			song_data = extract_pitches_vels_durations_names(folder + '/' + song)
+			pitches_list.append(song_data[0])
+			vels_list.append(song_data[1])
+			durations_list.append(song_data[2])
+			starts.append(song_data[3])
+			ends.append(song_data[4])
+			tempos.append(song_data[5])
+			names.append(song)
+
+	return (pitches_list, vels_list, durations_list, starts, ends, tempos,names)
+
+def post_processing(folder):
+
+	all_data = extract_pitch_vel_duration_lists_for_folder_post(folder)
+	padded_pitches_data, padded_vels_data = pad_corpus(all_data[0], all_data[1])
+	durations = (all_data[2])
+	starts = (all_data[3])
+	tempo = all_data[5]
+	pitches_train, pitches_test = split_train_test(padded_pitches_data)
+	vels_train, vels_test = split_train_test(padded_vels_data)
+	names_train,names_test = split_train_test(all_data[6])
+
+
+
+	return (vels_train, vels_test, pitches_train, pitches_test, durations, starts, tempo, 250,names_test,names_train)

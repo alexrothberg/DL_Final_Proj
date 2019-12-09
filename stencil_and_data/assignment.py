@@ -92,6 +92,58 @@ def test(model, test_french, test_english, eng_padding_index):
 
 	return perplexity, totalAccuracy
 
+
+def make_music(model, test_french, test_english, eng_padding_index):
+	"""
+	Runs through one epoch - all testing examples.
+
+	:param model: the initilized model to use for forward and backward pass
+	:param test_french: french test data (all data for testing) of shape (num_sentences, 14)
+	:param test_english: english test data (all data for testing) of shape (num_sentences, 15)
+	:param eng_padding_index: the padding index, the id of *PAD* token. This integer is used to mask padding labels.
+	:returns: perplexity of the test set, per symbol accuracy on test set
+	"""
+
+	# Note: Follow the same procedure as in train() to construct batches of data!
+	for i in range(len(test_french) // model.batch_size):
+		englishTestInputs = test_english[i * model.batch_size : (i * model.batch_size + model.batch_size),:-1]
+		englishTestLabels = test_english[i * model.batch_size : (i * model.batch_size + model.batch_size),1:]
+		frenchTestInputs = test_french[i * model.batch_size : (i * model.batch_size + model.batch_size),:]
+		probabilities = model.call(frenchTestInputs, englishTestInputs)
+		decoded_symbols = tf.argmax(input=probabilities, axis=2)
+
+	print("original: ")
+	print(test_english)
+
+	print("guesses:")
+	print(decoded_symbols)
+	return decoded_symbols
+	# loss = 0
+	# accuracy = 0
+	# allPredictions = 0
+	# predictions = 0
+	# vels_argmaxed = []
+	# for i in range(len(test_french) // model.batch_size):
+
+	# 	englishTestInputs = test_english[i * model.batch_size : (i * model.batch_size + model.batch_size),:-1]
+	# 	englishTestLabels = test_english[i * model.batch_size : (i * model.batch_size + model.batch_size),1:]
+
+	# 	frenchTestInputs = test_french[i * model.batch_size : (i * model.batch_size + model.batch_size),:]
+
+	# 	maskNumpy = englishTestLabels != eng_padding_index
+	# 	maskNumpy = tf.cast(maskNumpy, dtype=tf.float32)
+
+	# 	probabilities = model.call(frenchTestInputs, englishTestInputs)
+
+	# 	loss = (model.loss_function(probabilities, englishTestLabels, maskNumpy)) + loss
+	# 	allPredictions = (tf.reduce_sum(tf.cast(maskNumpy, tf.float32))) + allPredictions
+
+	# 	accuracy = model.accuracy_function(probabilities, englishTestLabels, maskNumpy)
+	# 	predictions = (accuracy * tf.reduce_sum(tf.cast(maskNumpy, tf.float32))) + predictions
+	# 	vels_argmaxed.append(np.argmax(probabilities,axis = 2))
+	# return vels_argmaxed
+
+
 def main():	
 	if len(sys.argv) != 2 or sys.argv[1] not in {"RNN","TRANSFORMER"}:
 			print("USAGE: python assignment.py <Model Type>")
@@ -105,13 +157,69 @@ def main():
 	model_args = (FRENCH_WINDOW_SIZE,len(pitches_train),ENGLISH_WINDOW_SIZE, len(vels_train))
 	if sys.argv[1] == "RNN":
 		model = RNN_Seq2Seq(*model_args)
-	#elif sys.argv[1] == "TRANSFORMER":
-		#model = Transformer_Seq2Seq(*model_args) 
+	elif sys.argv[1] == "TRANSFORMER":
+		model = Transformer_Seq2Seq(*model_args) 
 	
 	train(model, np.array(pitches_train), np.array(vels_train), -50)
 
 	perplexity, accuracy = test(model, np.array(pitches_test), np.array(vels_test), -50)
 
+	datums = post_processing('../classical')
+
+	vels_found = make_music(model, np.array(datums[2]), np.array(datums[0]), -50)
+	with open('f.txt','w+') as x:
+		for i in vels_found[0]:
+			x.write(str(int(i)))
+			x.write(',')
+		x.write(str(np.array(datums[9][0])))
+
+	# 	x.write(string(datums[9]))
+	# 	x.write("BREAK")
+	# 	x.write(string(vels_found))
+	# 	x.write("BREAEK")
+	# 	x.write(string(datums))
+	try:
+		print(len(vels_found))
+		print(len(vels_found[0]))
+		print(datums[9][0])
+		print(len(datums[2]))
+		print(len(datums[2][0]))
+
+
+		print(len(datums[6]))
+		print(len(datums[6][0]))
+
+
+	except:
+		pass
+	try:
+		print(vels_found.shape)
+	except:
+		pass
+
+	print("BACH OR STRAVINSKI")
+
+	print(len(datums[2][0]))
+	print(len(      vels_found[0]   ))
+	print(len(   datums[5][0]      )) # this was 279
+	print(len(    datums[4][0]     ))
+	print(len(   datums[5][0]      )) # this was 279
+	print(len(    datums[4][0]     ))
+	print(   datums[6][0]     )
+	print(len(      datums[9][0]   ))
+
+
+
+
+
+	recreate_song_from_data((datums[2][0]),vels_found[0],(datums[5][0]),(datums[4][0]),(datums[6][0]),(datums[9][0]))
+	for i in range(0,len(vels_found)):
+		recreate_song_from_data((datums[2][i]),vels_found[i],(datums[5][i]),(datums[4][i]),(datums[6][i]),(datums[9][i]))
+
+
+		# recreate_song_from_data(np.array(datums[2][i]),vels_found[i],np.array(datums[5][i]),np.array(datums[4][i]),np.array(datums[6][i]),np.array(datums[9][i]))
+
+	
 	print(perplexity)
 	print(accuracy)
 
