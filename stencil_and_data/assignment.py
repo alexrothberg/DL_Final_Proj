@@ -163,10 +163,16 @@ def main():
 		model = Transformer_Seq2Seq(*model_args) 
 	
 	train(model, np.array(pitches_train), np.array(vels_train), -50)
-
+	train(model, np.array(pitches_train), np.array(vels_train), -50)
+	train(model, np.array(pitches_train), np.array(vels_train), -50)
 
 
 	perplexity, accuracy = test(model, np.array(pitches_test), np.array(vels_test), -50)
+
+	print("****************")
+	print(perplexity)
+	print(accuracy)
+	print("************")
 
 	datums = post_processing('../classical')
 
