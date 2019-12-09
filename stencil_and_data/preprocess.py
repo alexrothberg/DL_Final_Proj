@@ -11,6 +11,7 @@ START_TOKEN = 250
 UNK_TOKEN = 250
 FRENCH_WINDOW_SIZE = 2000
 ENGLISH_WINDOW_SIZE = 2000
+EXTRA_PADDING = 0
 ##########DO NOT CHANGE#####################
 
 #Load MIDI file into PrettyMIDI object
@@ -43,6 +44,8 @@ def extract_pitch_vel_duration_lists_for_folder(folder):
 	ends = []
 	tempos = []
 
+	song_num = 10
+	counter=0
 	for song in os.listdir(folder):
 		print(song)
 
@@ -55,6 +58,13 @@ def extract_pitch_vel_duration_lists_for_folder(folder):
 			ends.append(song_data[4])
 			tempos.append(song_data[5])
 
+			if(counter==song_num):
+				#print("added a return for testing in preprocess line 58, delete line below")
+				#return (pitches_list, vels_list, durations_list, starts, ends, tempos)
+				pass
+			else:
+				counter+=1
+
 	return (pitches_list, vels_list, durations_list, starts, ends, tempos)
 
 def split_train_test(lst_of_data):
@@ -62,8 +72,8 @@ def split_train_test(lst_of_data):
 	train_index = int(0.8 * len(lst_of_data))
 	return (lst_of_data[0:train_index], lst_of_data[train_index:])
 
-def preprocessing(folder):
-
+def preprocessing(folder, extra_padding = 0):
+	EXTRA_PADDING = extra_padding
 	all_data = extract_pitch_vel_duration_lists_for_folder(folder)
 	padded_pitches_data, padded_vels_data = pad_corpus(all_data[0], all_data[1])
 	durations = split_train_test(all_data[2])
@@ -108,14 +118,14 @@ def pad_corpus(french, english):
     FRENCH_padded_sentences = []
     FRENCH_sentence_lengths = []
     for line in french:
-        padded_FRENCH = line[:FRENCH_WINDOW_SIZE-1]
+        padded_FRENCH = [PAD_TOKEN]*EXTRA_PADDING+ line[:FRENCH_WINDOW_SIZE-1]
         padded_FRENCH += [STOP_TOKEN] + [PAD_TOKEN] * (FRENCH_WINDOW_SIZE - len(padded_FRENCH)-1)
         FRENCH_padded_sentences.append(padded_FRENCH)
 
     ENGLISH_padded_sentences = []
     ENGLISH_sentence_lengths = []
     for line in english:
-        padded_ENGLISH = line[:ENGLISH_WINDOW_SIZE-1]
+        padded_ENGLISH = [PAD_TOKEN]*EXTRA_PADDING+line[:ENGLISH_WINDOW_SIZE-1]
         padded_ENGLISH = [START_TOKEN] + padded_ENGLISH + [STOP_TOKEN] + [PAD_TOKEN] * (ENGLISH_WINDOW_SIZE - len(padded_ENGLISH)-1)
         ENGLISH_padded_sentences.append(padded_ENGLISH)
 

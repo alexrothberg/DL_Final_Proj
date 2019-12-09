@@ -43,6 +43,7 @@ def generate(model, test_french, test_english, eng_padding_index):
 
 	print("guesses:")
 	print(decoded_symbols)
+	print(np.shape(decoded_symbols))
 	return decoded_symbols
 
 
@@ -138,10 +139,13 @@ def main():
 			print("<Model Type>: [RNN/TRANSFORMER]")
 			exit()
 
+
+
 	print("Running preprocessing...")
 	#train_english,test_english, train_french,test_french, english_vocab,french_vocab,eng_padding_index = get_data('data/fls.txt','data/els.txt','data/flt.txt','data/elt.txt')
 	vels_train, vels_test, pitches_train, pitches_test, durations, starts, tempo, index = preprocessing('../jazz')
 	print("Preprocessing complete.")
+
 	model_args = (FRENCH_WINDOW_SIZE,len(pitches_train),ENGLISH_WINDOW_SIZE, len(vels_train))
 	if sys.argv[1] == "RNN":
 		model = RNN_Seq2Seq(*model_args)
