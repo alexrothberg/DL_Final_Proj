@@ -103,14 +103,16 @@ def make_music(model, test_french, test_english, eng_padding_index):
 	:param eng_padding_index: the padding index, the id of *PAD* token. This integer is used to mask padding labels.
 	:returns: perplexity of the test set, per symbol accuracy on test set
 	"""
-
+	decoded_symbols = []
 	# Note: Follow the same procedure as in train() to construct batches of data!
 	for i in range(len(test_french) // model.batch_size):
 		englishTestInputs = test_english[i * model.batch_size : (i * model.batch_size + model.batch_size),:-1]
 		englishTestLabels = test_english[i * model.batch_size : (i * model.batch_size + model.batch_size),1:]
 		frenchTestInputs = test_french[i * model.batch_size : (i * model.batch_size + model.batch_size),:]
 		probabilities = model.call(frenchTestInputs, englishTestInputs)
-		decoded_symbols = tf.argmax(input=probabilities, axis=2)
+		decoded_symbols.append(tf.argmax(input=probabilities, axis=2)[0])
+		decoded_symbols.append(tf.argmax(input=probabilities, axis=2)[1])
+
 
 	print("original: ")
 	print(test_english)
@@ -161,6 +163,8 @@ def main():
 		model = Transformer_Seq2Seq(*model_args) 
 	
 	train(model, np.array(pitches_train), np.array(vels_train), -50)
+
+
 
 	perplexity, accuracy = test(model, np.array(pitches_test), np.array(vels_test), -50)
 

@@ -94,7 +94,7 @@ def recreate_song_from_data(pitches, vels, starts, durs, tempo, name):
 	recreated_song.instruments.append(piano)
 
 	#Write out the MIDI data:
-	recreated_song.write(name)
+	recreated_song.write('gen_songs/' + str(name))
 
 
 def pad_corpus(french, english):
